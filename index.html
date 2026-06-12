@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Darts - Score Calculator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Darts Score Calculator</h1>
+        <p class="subtitle">Click where your dart landed on the board, then confirm</p>
+        <div class="board-area">
+            <canvas id="boardCanvas" width="600" height="600"></canvas>
+        </div>
+        <div class="score-info">
+            <span id="selectedScore">Click the dartboard</span>
+        </div>
+        <div class="controls">
+            <button id="confirmBtn" disabled>Confirm Throw</button>
+            <button id="undoBtn" disabled>Undo</button>
+            <button id="resetBtn">Reset</button>
+        </div>
+        <div class="stats">
+            <div class="stat">
+                <span class="stat-label">Last Throw</span>
+                <span id="lastScore" class="stat-value">-</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Total Score</span>
+                <span id="totalScore" class="stat-value">0</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Darts Thrown</span>
+                <span id="dartCount" class="stat-value">0</span>
+            </div>
+        </div>
+        <div id="history"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
