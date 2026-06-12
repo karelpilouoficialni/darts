@@ -20,12 +20,7 @@ const RI = {
     doubleOuter: 1.00,
 };
 
-let state = {
-    hits: [],
-    selected: null,
-    selectedScore: null,
-    selectedLabel: null,
-};
+const state = { hits: [] };
 
 function drawRing(cx, cy, r1, r2, a1, a2, color) {
     ctx.beginPath();
@@ -38,7 +33,6 @@ function drawRing(cx, cy, r1, r2, a1, a2, color) {
 
 function drawBoard() {
     ctx.clearRect(0, 0, W, H);
-
     ctx.fillStyle = '#2c3e50';
     ctx.fillRect(0, 0, W, H);
 
@@ -118,43 +112,46 @@ function getScore(x, y) {
     return { score: num * 2, label: 'Double ' + num + ' (' + (num * 2) + ')' };
 }
 
-function drawMarker(x, y, label, preview) {
-    if (preview) {
+function drawMarker(x, y, label, isLast, index) {
+    if (isLast) {
         ctx.beginPath();
-        ctx.arc(x, y, 10, 0, 2 * Math.PI);
-        const grad = ctx.createRadialGradient(x, y, 0, x, y, 10);
-        grad.addColorStop(0, 'rgba(241, 196, 15, 0.8)');
-        grad.addColorStop(1, 'rgba(241, 196, 15, 0)');
+        ctx.arc(x, y, 14, 0, 2 * Math.PI);
+        const grad = ctx.createRadialGradient(x, y, 0, x, y, 14);
+        grad.addColorStop(0, 'rgba(231, 76, 60, 0.5)');
+        grad.addColorStop(1, 'rgba(231, 76, 60, 0)');
         ctx.fillStyle = grad;
         ctx.fill();
     }
 
     ctx.beginPath();
-    ctx.arc(x, y, preview ? 6 : 4, 0, 2 * Math.PI);
-    ctx.fillStyle = preview ? '#f1c40f' : '#e74c3c';
+    ctx.arc(x, y, isLast ? 5 : 3.5, 0, 2 * Math.PI);
+    ctx.fillStyle = '#e74c3c';
     ctx.fill();
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    if (label && preview) {
+    if (isLast && label) {
         ctx.fillStyle = '#fff';
-        ctx.font = 'bold 14px "Segoe UI", sans-serif';
+        ctx.font = 'bold 13px "Segoe UI", sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
         ctx.fillText(label, x, y - 12);
     }
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.font = '10px "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(index.toString(), x, y);
 }
 
 function render() {
     drawBoard();
-
-    for (const hit of state.hits) {
-        drawMarker(hit.x, hit.y, null, false);
-    }
-
-    if (state.selected) {
-        drawMarker(state.selected.x, state.selected.y, state.selectedLabel, true);
+    const len = state.hits.length;
+    for (let i = 0; i < len; i++) {
+        const h = state.hits[i];
+        drawMarker(h.x, h.y, h.label, i === len - 1, i + 1);
     }
 }
 
@@ -193,31 +190,15 @@ canvas.addEventListener('click', function (e) {
     const result = getScore(x, y);
     if (!result) return;
 
-    state.selected = { x, y };
-    state.selectedScore = result.score;
-    state.selectedLabel = result.label;
+    state.hits.push({ x, y, score: result.score, label: result.label });
 
     document.getElementById('selectedScore').textContent = result.label;
-    document.getElementById('confirmBtn').disabled = false;
-    render();
-});
+    document.getElementById('selectedScore').style.color = '#2ecc71';
+    setTimeout(function () {
+        const el = document.getElementById('selectedScore');
+        if (el) el.style.color = '#f1c40f';
+    }, 600);
 
-document.getElementById('confirmBtn').addEventListener('click', function () {
-    if (!state.selected) return;
-
-    state.hits.push({
-        x: state.selected.x,
-        y: state.selected.y,
-        score: state.selectedScore,
-        label: state.selectedLabel,
-    });
-
-    state.selected = null;
-    state.selectedScore = null;
-    state.selectedLabel = null;
-
-    document.getElementById('selectedScore').textContent = 'Click the dartboard';
-    document.getElementById('confirmBtn').disabled = true;
     updateUI();
     render();
 });
@@ -225,19 +206,20 @@ document.getElementById('confirmBtn').addEventListener('click', function () {
 document.getElementById('undoBtn').addEventListener('click', function () {
     if (state.hits.length === 0) return;
     state.hits.pop();
+    const lastLabel = state.hits.length > 0
+        ? state.hits[state.hits.length - 1].label
+        : 'Click the dartboard';
+    document.getElementById('selectedScore').textContent = lastLabel;
+    document.getElementById('selectedScore').style.color = '#f1c40f';
     updateUI();
     render();
 });
 
 document.getElementById('resetBtn').addEventListener('click', function () {
-    if (state.hits.length === 0 && !state.selected) return;
+    if (state.hits.length === 0) return;
     state.hits = [];
-    state.selected = null;
-    state.selectedScore = null;
-    state.selectedLabel = null;
-
     document.getElementById('selectedScore').textContent = 'Click the dartboard';
-    document.getElementById('confirmBtn').disabled = true;
+    document.getElementById('selectedScore').style.color = '#f1c40f';
     updateUI();
     render();
 });
